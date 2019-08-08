@@ -1,0 +1,22 @@
+version: '3.0'
+
+services:
+  node:
+    build:
+      context: src
+    env_file: .env
+    restart: always
+    depends_on:
+      - mongo
+
+  mongo:
+    restart: always
+    image: mongo:latest
+    expose:
+      - 27017
+    volumes:
+      - mongo-volume:/data/db
+
+volumes:
+  mongo-volume:
+    driver: 'local'
