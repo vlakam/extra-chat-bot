@@ -112,16 +112,16 @@ bot.hears(/^#([^\s]+)$/, async (ctx: ContextMessageUpdate) => {
                 if (specialMethod) {
                     const method = specialMethod[1];
                     if (method === 'photo')
-                        bot.telegram.sendPhoto(id, fileId[1], {reply_to_message_id: messageToReply});
+                        ctx.telegram.sendPhoto(id, fileId[1], {reply_to_message_id: messageToReply});
                     else if (method === 'video')
-                        bot.telegram.sendVideo(id, fileId[1], {reply_to_message_id: messageToReply});
+                        ctx.telegram.sendVideo(id, fileId[1], {reply_to_message_id: messageToReply});
                     else if (method === 'voice')
-                        bot.telegram.sendVoice(id, fileId[1], {reply_to_message_id: messageToReply});
+                        ctx.telegram.sendVoice(id, fileId[1], {reply_to_message_id: messageToReply});
                 } else {
-                    bot.telegram.sendDocument(id, fileId[1], {reply_to_message_id: messageToReply});
+                    ctx.telegram.sendDocument(id, fileId[1], {reply_to_message_id: messageToReply});
                 }
             } else {
-                bot.telegram.sendMessage(id, extra.code, {reply_to_message_id: messageToReply, parse_mode: "Markdown"})
+                ctx.telegram.sendMessage(id, extra.code, {reply_to_message_id: messageToReply, parse_mode: "Markdown"})
             }
         } catch (e) {
             console.error(`Failed to send extra on ${hashtag}. Err: ${e}`);
