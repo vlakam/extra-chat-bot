@@ -3,20 +3,26 @@ version: '3.0'
 services:
   node:
     build:
-      context: src
+      context: .
     env_file: .env
     restart: always
     depends_on:
       - mongo
+    networks:
+      - database_nw
 
   mongo:
     restart: always
     image: mongo:latest
-    expose:
-      - 27017
     volumes:
       - mongo-volume:/data/db
+    networks:
+      - database_nw
 
 volumes:
   mongo-volume:
     driver: 'local'
+
+networks:
+  database_nw:
+    driver: bridge
