@@ -1,6 +1,7 @@
 import Telegraf, {Context, ContextMessageUpdate} from 'telegraf';
 import fetch from 'node-fetch';
-import ExtraModel from './models/extra.model'
+import ExtraModel from './models/extra.model';
+import * as tt from 'telegram-typings';
 
 const IS_FILE_REGEXP = /^###.+###:(.*)/;
 const SPECIAL_FILE = /^###file_id!(.*)###/;
@@ -197,8 +198,67 @@ bot.hears(/^\/extra (.+)$/, adminMiddleware, async (ctx: ContextMessageUpdate) =
         } catch (e) {
             console.error(`Failed to delete extra. ${e}`);
         }
-    } else if (op[0] === '#') {
+    } else if (op.startsWith('#')) {
+        const hashtag = ctx.message.text.match(/(#[\w]+)/);
+        if (!ctx.message.reply_to_message) {
+            return ctx.reply('Reply to message');
+        }
 
+        if (!hashtag) {
+            return;
+        }
+
+        const saveMessage:tt.Message = ctx.message.reply_to_message;
+        try {
+            // TODO: meh
+            if (saveMessage.document) {
+                const { file_id:fileId } = saveMessage.document;
+                await ExtraModel.create({
+                   hashtag,
+                   chat: chatId,
+                   code: `###file_id###:${fileId}`
+                });
+
+                await ctx.reply(`Saved document as response to ${hashtag}`);
+            } else if (saveMessage.voice) {
+                const { file_id:fileId } = saveMessage.voice;
+                await ExtraModel.create({
+                    hashtag,
+                    chat: chatId,
+                    code: `###file_id!voice###:${fileId}`
+                });
+
+                await ctx.reply(`Saved voice as response to ${hashtag}`);
+            } else if (saveMessage.photo && saveMessage.photo.length) {
+                const { file_id:fileId } = saveMessage.photo[saveMessage.photo.length - 1];
+                await ExtraModel.create({
+                    hashtag,
+                    chat: chatId,
+                    code: `###file_id!photo###:${fileId}`
+                });
+
+                await ctx.reply(`Saved photo as response to ${hashtag}`);
+            } else if (saveMessage.video) {
+                const { file_id:fileId } = saveMessage.video;
+                await ExtraModel.create({
+                    hashtag,
+                    chat: chatId,
+                    code: `###file_id!video###:${fileId}`
+                });
+
+                await ctx.reply(`Saved video as response to ${hashtag}`);
+            } else {
+                await ExtraModel.create({
+                    hashtag,
+                    chat: chatId,
+                    code: saveMessage.text
+                });
+
+                await ctx.reply(`Saved text as response to ${hashtag}`);
+            }
+        } catch (e) {
+            console.error(`Failed to add extra. ${e}`);
+        }
     }
 });
 
