@@ -2,8 +2,8 @@ import Telegraf, {Context, ContextMessageUpdate} from 'telegraf';
 import fetch from 'node-fetch';
 import ExtraModel from './models/extra.model'
 
-const IS_FILE_REGEXP = /^###.+###:(.*)/
-const SPECIAL_FILE = /^###file_id!(.*)###/
+const IS_FILE_REGEXP = /^###.+###:(.*)/;
+const SPECIAL_FILE = /^###file_id!(.*)###/;
 
 const bot = new Telegraf('', {
     telegram: {
@@ -16,9 +16,9 @@ bot.use((ctx:ContextMessageUpdate, next: Function) => {
     const start = new Date();
     return next().then(() => {
         const ms = (new Date()).getTime() - start.getTime();
-        console.log(`${ctx.message.text} response time ${ms}ms`)
+        console.log(`${ctx.message.text} ${ctx.message.chat.id} response time ${ms}ms`)
     })
-})
+});
 
 export const adminMiddleware = async (ctx: Context, next: Function) => {
     if (ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') {
@@ -62,6 +62,7 @@ bot.command('import', adminMiddleware, async (ctx: ContextMessageUpdate) => {
         }
 
         const [chatId] = chats;
+        // TODO: uncomment
         // if (chatId !== id.toString()) {
         //     return ctx.reply('This backup is not from this chat.');
         // }
@@ -112,16 +113,16 @@ bot.hears(/^#([^\s]+)$/, async (ctx: ContextMessageUpdate) => {
                 if (specialMethod) {
                     const method = specialMethod[1];
                     if (method === 'photo')
-                        ctx.telegram.sendPhoto(id, fileId[1], {reply_to_message_id: messageToReply});
+                        await ctx.telegram.sendPhoto(id, fileId[1], {reply_to_message_id: messageToReply});
                     else if (method === 'video')
-                        ctx.telegram.sendVideo(id, fileId[1], {reply_to_message_id: messageToReply});
+                        await ctx.telegram.sendVideo(id, fileId[1], {reply_to_message_id: messageToReply});
                     else if (method === 'voice')
-                        ctx.telegram.sendVoice(id, fileId[1], {reply_to_message_id: messageToReply});
+                        await ctx.telegram.sendVoice(id, fileId[1], {reply_to_message_id: messageToReply});
                 } else {
-                    ctx.telegram.sendDocument(id, fileId[1], {reply_to_message_id: messageToReply});
+                    await ctx.telegram.sendDocument(id, fileId[1], {reply_to_message_id: messageToReply});
                 }
             } else {
-                ctx.telegram.sendMessage(id, extra.code, {reply_to_message_id: messageToReply, parse_mode: "Markdown"})
+                await ctx.telegram.sendMessage(id, extra.code, {reply_to_message_id: messageToReply, parse_mode: "Markdown"})
             }
         } catch (e) {
             console.error(`Failed to send extra on ${hashtag}. Err: ${e}`);
@@ -159,10 +160,45 @@ bot.command('snap', adminMiddleware, async (ctx: ContextMessageUpdate) => {
         };
 
         const buf = Buffer.from(JSON.stringify(backup));
-        ctx.telegram.sendDocument(userId, {source: buf}, {caption: `${chatId} - ${new Date().toDateString()}`});
+        await ctx.telegram.sendDocument(userId, {source: buf}, {caption: `${chatId} - ${new Date().toISOString()}`});
         snapCooldown[chatId] = new Date();
     } catch (e) {
         console.error(`Failed to send backup. Err ${e}`);
+    }
+});
+
+bot.hears(/^\/extra (.+)$/, adminMiddleware, async (ctx: ContextMessageUpdate) => {
+    const op = ctx.match[1];
+    const { id:chatId } = ctx.chat;
+
+    if (op === 'list') {
+        try {
+            let extras = await ExtraModel.find({
+                chat: chatId
+            });
+
+            return await ctx.reply(`List of custom commands:\n${extras.map((extra) => extra.hashtag).join('\n')}`);
+        } catch (e) {
+            console.error(`Failed to show list of extras. ${e}`);
+        }
+    } else if (op.startsWith('del')) {
+        try {
+            const extra = ctx.message.text.match(/(#[\w]+)/);
+            if (!extra) {
+                return await ctx.reply('Invalid extra to delete');
+            }
+
+            await ExtraModel.deleteOne({
+                chat: chatId,
+                hashtag: extra[1]
+            });
+
+            return await ctx.reply(`${extra[1]} is deleted`);
+        } catch (e) {
+            console.error(`Failed to delete extra. ${e}`);
+        }
+    } else if (op[0] === '#') {
+
     }
 });
 
