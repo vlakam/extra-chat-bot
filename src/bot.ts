@@ -175,7 +175,7 @@ bot.command('snap', adminMiddleware, async (ctx: ContextMessageUpdate) => {
     }
 });
 
-bot.hears(/^\/extra (.+)$/, adminMiddleware, async (ctx: ContextMessageUpdate) => {
+bot.hears(/^[!\/]extra (.+)$/, adminMiddleware, async (ctx: ContextMessageUpdate) => {
     const op = ctx.match[1];
     const { id:chatId } = ctx.chat;
 
