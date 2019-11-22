@@ -6,6 +6,7 @@ import {IncomingMessage} from "telegraf/typings/telegram-types";
 
 const IS_FILE_REGEXP = /^###.+###:(.*)/;
 const SPECIAL_FILE = /^###file_id!(.*)###/;
+const MASTER_USERNAME = process.env.MASTER_USERNAME;
 
 const bot = new Telegraf('', {
     telegram: {
@@ -96,7 +97,9 @@ bot.command('import', adminMiddleware, async (ctx: ContextMessageUpdate) => {
         ctx.reply(`Successfully imported extras: ${Object.keys(extra).length - fails}. Fails: ${fails}`);
     } catch (e) {
         console.log(`Errored on import: ${e}`);
-        ctx.reply('Check logs.');
+        if (MASTER_USERNAME) {
+            ctx.telegram.sendMessage(MASTER_USERNAME, `Errored on import: ${e}`);
+        }
     }
 });
 
@@ -134,7 +137,9 @@ bot.hears(/^#([^\s]+)$/, async (ctx: ContextMessageUpdate) => {
             }
         } catch (e) {
             console.error(`Failed to send extra on ${hashtag}. Err: ${e}`);
-            ctx.reply('Check logs.');
+            if (MASTER_USERNAME) {
+                ctx.telegram.sendMessage(MASTER_USERNAME, `Failed to send extra on ${hashtag}. Err: ${e}`);
+            }
         }
     }
 });
@@ -153,19 +158,20 @@ bot.command('snap', adminMiddleware, async (ctx: ContextMessageUpdate) => {
 
     try {
         // TODO: new backup format.
-        let backup = {};
         let extras = await ExtraModel.find({
             chat: chatId
         });
 
-        backup[chatId] = {
-            hashes: {
-                extra: extras.reduce((acc, val) => {
-                    acc[val.hashtag] = val.code;
-                    return acc;
-                }, {})
+        let backup = {
+            [chatId]: {
+                hashes: {
+                    extra: extras.reduce((acc, val) => {
+                        acc[val.hashtag] = val.code;
+                        return acc;
+                    }, {})
+                }
             }
-        };
+        }
 
         const buf = Buffer.from(JSON.stringify(backup));
         let name = ctx.chat.title || ctx.chat.username || ctx.chat.first_name || chatId;
@@ -173,6 +179,9 @@ bot.command('snap', adminMiddleware, async (ctx: ContextMessageUpdate) => {
         snapCooldown[chatId] = new Date();
     } catch (e) {
         console.error(`Failed to send backup. Err ${e}`);
+        if (MASTER_USERNAME) {
+            ctx.telegram.sendMessage(MASTER_USERNAME, `Failed to send backup. Err ${e}`);
+        }
     }
 });
 
@@ -189,6 +198,9 @@ bot.hears(/^[!\/]extra (.+)$/, adminMiddleware, async (ctx: ContextMessageUpdate
             return await ctx.reply(`List of custom commands:\n${extras.map((extra) => extra.hashtag).join('\n')}`);
         } catch (e) {
             console.error(`Failed to show list of extras. ${e}`);
+            if (MASTER_USERNAME) {
+                ctx.telegram.sendMessage(MASTER_USERNAME, `Failed to show list of extras. ${e}`);
+            }
         }
     } else if (op.startsWith('del')) {
         try {
@@ -205,6 +217,9 @@ bot.hears(/^[!\/]extra (.+)$/, adminMiddleware, async (ctx: ContextMessageUpdate
             return await ctx.reply(`${extra[1]} is deleted`);
         } catch (e) {
             console.error(`Failed to delete extra. ${e}`);
+            if (MASTER_USERNAME) {
+                ctx.telegram.sendMessage(MASTER_USERNAME, `Failed to delete extra. ${e}`);
+            }
         }
     } else if (op.startsWith('#')) {
         const input = op.match(/(#[\w]+)/);
@@ -259,6 +274,9 @@ bot.hears(/^[!\/]extra (.+)$/, adminMiddleware, async (ctx: ContextMessageUpdate
             await ctx.reply(`Saved ${response} as response to ${hashtag}`);
         } catch (e) {
             console.error(`Failed to add extra. ${e}`);
+            if (MASTER_USERNAME) {
+                ctx.telegram.sendMessage(MASTER_USERNAME, `Failed to add extra. ${e}`);
+            }
         }
     }
 });
