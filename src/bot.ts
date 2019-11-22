@@ -2,6 +2,7 @@ import Telegraf, {Context, ContextMessageUpdate} from 'telegraf';
 import fetch from 'node-fetch';
 import ExtraModel from './models/extra.model';
 import * as tt from 'telegram-typings';
+import {IncomingMessage} from "telegraf/typings/telegram-types";
 
 const IS_FILE_REGEXP = /^###.+###:(.*)/;
 const SPECIAL_FILE = /^###file_id!(.*)###/;
@@ -9,21 +10,28 @@ const SPECIAL_FILE = /^###file_id!(.*)###/;
 const bot = new Telegraf('', {
     telegram: {
         // @ts-ignore
-        apiRoot: 'http://51.15.86.205:8012'
+        apiRoot: process.env.TELEGRAM_API || 'https://api.telegram.org'
     }
 });
 
-bot.use((ctx:ContextMessageUpdate, next: Function) => {
+bot.use(async (ctx:ContextMessageUpdate, next: Function) => {
+    try {
+        await next();
+    } catch (e) {
+        console.error(`Errored: ${e}`);
+    }
+});
+
+bot.use(async (ctx:ContextMessageUpdate, next: Function) => {
     const start = new Date();
-    return next().then(() => {
-        const ms = (new Date()).getTime() - start.getTime();
-        console.log(`${ctx.message.text} ${ctx.message.chat.id} response time ${ms}ms`)
-    })
+    await next();
+    const ms = (new Date()).getTime() - start.getTime();
+    console.log(`${ctx.message ? ctx.message.text : ctx.updateType} ${ctx.chat ? ctx.chat.id : ""} response time ${ms}ms`);
 });
 
 export const adminMiddleware = async (ctx: Context, next: Function) => {
     if (ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') {
-        let member = await bot.getChatMember(ctx.chat.id, ctx.message.from.id);
+        let member = await ctx.telegram.getChatMember(ctx.chat.id, ctx.message.from.id);
         if (['administrator', 'creator'].includes(member.status)) {
             return next();
         }
@@ -63,10 +71,9 @@ bot.command('import', adminMiddleware, async (ctx: ContextMessageUpdate) => {
         }
 
         const [chatId] = chats;
-        // TODO: uncomment
-        // if (chatId !== id.toString()) {
-        //     return ctx.reply('This backup is not from this chat.');
-        // }
+        if (chatId !== id.toString()) {
+            return ctx.reply('This backup is not from this chat.');
+        }
 
         const { hashes } = backup[chatId];
         const { extra } = hashes;
@@ -199,15 +206,17 @@ bot.hears(/^\/extra (.+)$/, adminMiddleware, async (ctx: ContextMessageUpdate) =
             console.error(`Failed to delete extra. ${e}`);
         }
     } else if (op.startsWith('#')) {
-        const hashtag = ctx.message.text.match(/(#[\w]+)/);
+        const input = op.match(/(#[\w]+)/);
         const saveMessage:tt.Message = ctx.message.reply_to_message;
         if (!saveMessage) {
             return ctx.reply('Reply to message');
         }
 
-        if (!hashtag) {
+        if (!input) {
             return;
         }
+
+        let hashtag = input[1];
 
         try {
             const oldExtra = await ExtraModel.findOne({
