@@ -168,7 +168,8 @@ bot.command('snap', adminMiddleware, async (ctx: ContextMessageUpdate) => {
         };
 
         const buf = Buffer.from(JSON.stringify(backup));
-        await ctx.telegram.sendDocument(userId, {source: buf}, {caption: `${chatId} - ${new Date().toISOString()}`});
+        let name = ctx.chat.title || ctx.chat.username || ctx.chat.first_name || chatId;
+        await ctx.telegram.sendDocument(userId, { source: buf, filename: `extras-${chatId}.json` }, {caption: `${name} - ${new Date().toISOString()}`});
         snapCooldown[chatId] = new Date();
     } catch (e) {
         console.error(`Failed to send backup. Err ${e}`);
