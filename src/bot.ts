@@ -146,7 +146,7 @@ bot.hears(/^#([^\s]+)$/, async (ctx: ContextMessageUpdate) => {
 
 const snapCooldown = {};
 
-bot.command('snap', adminMiddleware, async (ctx: ContextMessageUpdate) => {
+bot.hears(/^[!\/]snap$/, adminMiddleware, async (ctx: ContextMessageUpdate) => {
     const { id:chatId } = ctx.chat;
     const { id:userId } = ctx.message.from;
     const oldSnap = snapCooldown[chatId] || new Date(0);
