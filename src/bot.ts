@@ -27,7 +27,9 @@ bot.use(async (ctx:ContextMessageUpdate, next: Function) => {
     const start = new Date();
     await next();
     const ms = (new Date()).getTime() - start.getTime();
-    console.log(`${ctx.message ? ctx.message.text : ctx.updateType} ${ctx.chat ? ctx.chat.id : ""} response time ${ms}ms`);
+    const title = ctx.chat ? ctx.chat.username || ctx.chat.title || ctx.chat.first_name || ctx.chat.id || "" : "";
+    const id = ctx.chat ? ctx.chat.id : "";
+    console.log(`${ctx.message ? ctx.message.text : ctx.updateType} ${title} ${id} response time ${ms}ms`);
 });
 
 export const adminMiddleware = async (ctx: Context, next: Function) => {
