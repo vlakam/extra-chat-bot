@@ -83,6 +83,8 @@ bot.command('import', adminMiddleware, async (ctx: ContextMessageUpdate) => {
             const extraCode = extra[hashtag];
             console.log(`${hashtag} - ${extraCode}`);
             try {
+                await ExtraModel.deleteOne({ hashtag, chat: id });
+
                 await ExtraModel.create({
                     hashtag,
                     chat: id,
@@ -240,12 +242,6 @@ bot.hears(/^[!\/]extra (.+)$/, adminMiddleware, async (ctx: ContextMessageUpdate
                 chat: chatId
             });
 
-            if (oldExtra) {
-                return;
-            }
-        } catch (e) { }
-
-        try {
             let code = '';
             let response = '';
 
@@ -270,6 +266,9 @@ bot.hears(/^[!\/]extra (.+)$/, adminMiddleware, async (ctx: ContextMessageUpdate
                 response = 'text';
             }
 
+            if (oldExtra) {
+                await ExtraModel.deleteOne({ hashtag, chat: chatId });
+            }
             await ExtraModel.create({hashtag, chat: chatId, code});
             await ctx.reply(`Saved ${response} as response to ${hashtag}`);
         } catch (e) {
