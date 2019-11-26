@@ -2,8 +2,9 @@ version: '3.0'
 
 services:
   node:
-    build:
-      context: .
+#    build:
+#      context: .
+    image: vlakam/extra-chat-bot
     env_file: .env
     restart: always
     depends_on:
