@@ -108,8 +108,10 @@ bot.command('import', adminMiddleware, async (ctx: ContextMessageUpdate) => {
 });
 
 bot.hears(/^#([^\s]+)$/, async (ctx: ContextMessageUpdate) => {
-    const [ hashtag ] = ctx.match;
+    let [ hashtag ] = ctx.match;
     const { id } = ctx.message.chat;
+
+    hashtag = hashtag.toLowerCase();
     const extra = await ExtraModel.findOne({
         chat: id,
         hashtag: hashtag
@@ -236,7 +238,7 @@ bot.hears(/^[!\/]extra (.+)$/, adminMiddleware, async (ctx: ContextMessageUpdate
             return;
         }
 
-        let hashtag = input[1];
+        let hashtag = input[1].toLowerCase();
 
         try {
             const oldExtra = await ExtraModel.findOne({
