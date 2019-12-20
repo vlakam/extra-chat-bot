@@ -1,8 +1,8 @@
 import {Context} from "telegraf";
-import {LruCache} from "../helpers/lruCache";
+import {TimedLruCache} from "../helpers/lruCache";
 import * as tt from 'telegram-typings';
 
-const adminGroupCache = new LruCache<tt.ChatMember[]>();
+export const adminGroupCache = new TimedLruCache<tt.ChatMember[]>({ maxEntries: 20, timeToLive: 10});
 
 export default async (ctx: Context, next: Function) => {
     if ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') && ctx.from) {

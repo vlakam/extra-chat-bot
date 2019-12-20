@@ -1,9 +1,9 @@
 export class LruCache<T> {
 
-    private values: Map<string, T> = new Map<string, T>();
-    private maxEntries: number = 20;
+    protected values: Map<string, T> = new Map<string, T>();
+    protected maxEntries: number = 20;
 
-    constructor(maxEntries: number = 20) {
+    constructor({ maxEntries = 20 }) {
         this.maxEntries = maxEntries;
     }
 
@@ -12,9 +12,8 @@ export class LruCache<T> {
     }
 
     public get(key: string): T {
-        const hasKey = this.values.has(key);
         let entry: T;
-        if (hasKey) {
+        if (this.has(key)) {
             entry = this.values.get(key);
             this.values.delete(key);
             this.values.set(key, entry);
@@ -33,4 +32,35 @@ export class LruCache<T> {
         this.values.set(key, value);
     }
 
+    public remove(key: string): boolean {
+        if (this.has(key)) {
+            this.values.delete(key);
+            return true;
+        }
+
+        return false;
+    }
+
+    public reset() {
+        this.values = new Map<string, T>();
+    }
+}
+
+export class TimedLruCache<T> extends LruCache<T> {
+    protected timeToLive: number;
+    protected refreshTimer: NodeJS.Timeout;
+
+    constructor({ maxEntries = 20, timeToLive = 60 }) {
+        super({ maxEntries });
+        this.timeToLive = timeToLive;
+
+        this.refreshTimer = setTimeout(() => {
+            this.reset();
+        }, timeToLive * 1000);
+    }
+
+    public reset() {
+        super.reset();
+        this.refreshTimer.refresh();
+    }
 }
