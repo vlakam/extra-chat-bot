@@ -1,4 +1,4 @@
-FROM node:latest
+FROM node:10-alpine
 
 ENV NODE_WORKDIR /home/node/app
 
