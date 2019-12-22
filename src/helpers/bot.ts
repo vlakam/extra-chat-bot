@@ -13,8 +13,7 @@ export const launch = async (token: string) => {
 
     try {
         await bot.launch();
-        console.info('Successfully connected to telegram');
-        report(`Bot started at ${(new Date()).toISOString()}`);
+        report(`Bot started`);
     } catch (e) {
         console.error(`Failed to init telegram: ${e}`);
         return process.exit(1);

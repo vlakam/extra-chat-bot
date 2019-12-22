@@ -1,6 +1,6 @@
 import Telegraf from 'telegraf';
 
-const {TOKEN, MASTER_ID} = process.env;
+const {BOT_TOKEN, MASTER_ID, TELEGRAM_API} = process.env;
 const bypassList = [
     'message to edit not found',
     'does not contain any stream',
@@ -38,17 +38,21 @@ const bypassList = [
 
 let errorsToReport:string[] = [];
 
-async function bulkReport() {
+async function sendReport() {
     const tempErrorsToReport = errorsToReport;
     errorsToReport = [];
 
-    if (tempErrorsToReport.length > 5) {
+    if (tempErrorsToReport.length) {
         const reportText = tempErrorsToReport.join('\n');
         const chunks = reportText.match(/.{1,4000}/g);
 
         for (const chunk of chunks) {
-            const telegram = new Telegraf(TOKEN, {
+            const telegram = new Telegraf(BOT_TOKEN, {
                 username: "extra-bot",
+                telegram: {
+                    // @ts-ignore
+                    apiRoot: TELEGRAM_API || 'https://api.telegram.org'
+                }
             }).telegram;
 
             try {
@@ -62,18 +66,20 @@ async function bulkReport() {
 
 export default function report(err, prefix = 'default') {
     try {
-        if (!err.message) {
+        if (!err) {
             return;
         }
 
-        if (bypassList.some((item) => err.message.includes(item))) {
+        if (bypassList.some((item) => err.includes(item))) {
             return;
         }
 
-        errorsToReport.push(`${prefix.toUpperCase()}: ${err.message}`)
+        let reportString = `(${(new Date()).toISOString()}) ${prefix.toUpperCase()}: ${err}`;
+        errorsToReport.push(reportString);
+        console.log(reportString);
     } catch (error) {
         // Do nothing
     }
 };
 
-setInterval(bulkReport, 60 * 1000);
+setInterval(sendReport, 60 * 1000);

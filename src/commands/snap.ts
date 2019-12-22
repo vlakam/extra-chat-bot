@@ -38,7 +38,7 @@ const setupSnapCommand = (bot: Telegraf<ContextMessageUpdate>) => {
             await ctx.telegram.sendDocument(userId, { source: buf, filename: `extras-${chatId}.json` }, {caption: `${name} - ${new Date().toISOString()}`});
             snapCooldown[chatId] = new Date();
         } catch (e) {
-            report(e, 'snap');
+            report(`Failed to send snap. ${e}`, 'snap');
         }
     });
 };

@@ -9,6 +9,7 @@ const setupExtraTrigger = (bot: Telegraf<ContextMessageUpdate>) => {
     bot.hears(/^#([^\s]+)$/, async (ctx: ContextMessageUpdate) => {
         let [ hashtag ] = ctx.match;
         const { id } = ctx.message.chat;
+        const { message_id:messageId } = ctx.message;
 
         hashtag = hashtag.toLowerCase();
         const extra = await ExtraModel.findOne({
@@ -43,8 +44,13 @@ const setupExtraTrigger = (bot: Telegraf<ContextMessageUpdate>) => {
                 }
 
                 if (extra.ttl !== -1) {
-                    setTimeout(() => {
-                        ctx.telegram.deleteMessage(id, newMessage.message_id);
+                    setTimeout(async () => {
+                        try {
+                            await ctx.telegram.deleteMessage(id, newMessage.message_id);
+                            await ctx.telegram.deleteMessage(id, messageId);
+                        } catch (e) {
+                            report(`Can't delete message from ${hashtag} ${newMessage.message_id} ${messageId}`, 'trigger');
+                        }
                         console.log(`TTL: ${hashtag} ${id}`);
                     }, extra.ttl * 1000);
                 }

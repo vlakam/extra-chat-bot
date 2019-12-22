@@ -7,7 +7,6 @@ mongoose.Promise = Promise;
 
 const reportMongo = (msg: string) => {
     report(msg, 'MONGODB');
-    console.log(`MONGODB: ${msg}`);
 };
 
 mongoose.connection.on('connected', () => {
