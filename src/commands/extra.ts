@@ -4,10 +4,6 @@ import report from "../helpers/report";
 import * as tt from 'telegram-typings';
 import { ExtraModel } from "../models";
 
-const escapeMarkdownEntities = (inputStr: string) => {
-    return inputStr.replace(/([_*[`])/g, '\\$1');
-};
-
 const setupExtraCommand = (bot: Telegraf<ContextMessageUpdate>) => {
     bot.hears(/^[!\/]extra (.+)$/, adminMiddleware, async (ctx: ContextMessageUpdate) => {
         const op = ctx.match[1];
@@ -78,7 +74,7 @@ const setupExtraCommand = (bot: Telegraf<ContextMessageUpdate>) => {
                     code = `###file_id!video###:${fileId}`;
                     response = 'video';
                 } else {
-                    code = escapeMarkdownEntities(saveMessage.text);
+                    code = saveMessage.text;
                     response = 'text';
                 }
 
