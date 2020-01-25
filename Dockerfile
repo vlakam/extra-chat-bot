@@ -1,14 +1,21 @@
-FROM node:10-alpine
+FROM node:10-alpine AS builder
 
-ENV NODE_WORKDIR /home/node/app
-
+ENV NODE_WORKDIR /app
 WORKDIR $NODE_WORKDIR
-
-RUN npm install -g typescript
-RUN npm install -g ts-node
 
 ADD . $NODE_WORKDIR
 
+RUN rm -rf dist
 RUN npm install
+RUN npm run build
 
-CMD ["ts-node", "./src/index.ts"]
+FROM node:10-alpine
+
+ENV NODE_WORKDIR /app
+WORKDIR $NODE_WORKDIR
+
+COPY --from=builder $NODE_WORKDIR/dist ./dist
+COPY package* ./
+RUN npm install --production
+
+CMD npm start
