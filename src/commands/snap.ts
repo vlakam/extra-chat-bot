@@ -1,5 +1,5 @@
 import Telegraf, {ContextMessageUpdate} from "telegraf";
-import { ExtraModel } from "../models";
+import { ExtraModel, OldExtraModel, NewExtraModel } from "../models";
 import adminMiddleware from "../middlewares/adminMiddleware";
 import report from "../helpers/report";
 
@@ -17,20 +17,31 @@ const setupSnapCommand = (bot: Telegraf<ContextMessageUpdate>) => {
         }
 
         try {
-            // TODO: new backup format.
             let extras = await ExtraModel.find({
                 chat: chatId
             });
 
             let backup = {
-                [chatId]: {
-                    hashes: {
-                        extra: extras.reduce((acc, val) => {
-                            acc[val.hashtag] = val.code;
-                            return acc;
-                        }, {})
+                [chatId]: extras.reduce((acc, val) => {
+                    let toSave = {};
+                    if (val.kind === 'Old') {
+                        let oldExtra = new OldExtraModel(val);
+                        toSave = {
+                            kind: 'Old',
+                            code: oldExtra.code
+                        }
+                    } else {
+                        let newExtra = new NewExtraModel(val);
+                        toSave = {
+                            kind: 'New',
+                            type: newExtra.type,
+                            replica: newExtra.replica
+                        }
                     }
-                }
+
+                    acc[val.hashtag] = JSON.stringify(toSave);
+                    return acc;
+                }, {})
             };
 
             const buf = Buffer.from(JSON.stringify(backup));

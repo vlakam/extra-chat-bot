@@ -2,7 +2,8 @@ import Telegraf, {ContextMessageUpdate} from "telegraf";
 import adminMiddleware from "../middlewares/adminMiddleware";
 import report from "../helpers/report";
 import * as tt from 'telegram-typings';
-import { ExtraModel } from "../models";
+import {ExtraModel, NewExtraModel} from "../models";
+import replicators from 'telegraf/core/replicators';
 
 const setupExtraCommand = (bot: Telegraf<ContextMessageUpdate>) => {
     bot.hears(/^[!\/]extra (.+)$/, adminMiddleware, async (ctx: ContextMessageUpdate) => {
@@ -54,35 +55,19 @@ const setupExtraCommand = (bot: Telegraf<ContextMessageUpdate>) => {
                     chat: chatId
                 });
 
-                let code = '';
-                let response = '';
-
-                if (saveMessage.document) {
-                    const { file_id:fileId } = saveMessage.document;
-                    code = `###file_id###:${fileId}`;
-                    response = 'document';
-                } else if (saveMessage.voice) {
-                    const { file_id:fileId } = saveMessage.voice;
-                    code = `###file_id!voice###:${fileId}`;
-                    response = 'voice';
-                } else if (saveMessage.photo && saveMessage.photo.length) {
-                    const { file_id:fileId } = saveMessage.photo[saveMessage.photo.length - 1];
-                    code = `###file_id!photo###:${fileId}`;
-                    response = 'photo';
-                } else if (saveMessage.video) {
-                    const { file_id:fileId } = saveMessage.video;
-                    code = `###file_id!video###:${fileId}`;
-                    response = 'video';
-                } else {
-                    code = saveMessage.text;
-                    response = 'text';
-                }
-
+                const extraType = Object.keys(replicators.copyMethods).find((type) => saveMessage[type]);
+                const extraReplica = replicators[extraType](saveMessage);
                 if (oldExtra) {
                     await ExtraModel.deleteOne({ hashtag, chat: chatId });
                 }
-                await ExtraModel.create({hashtag, chat: chatId, code});
-                await ctx.reply(`Saved ${response} as response to ${hashtag}`);
+
+                await NewExtraModel.create({
+                    hashtag,
+                    chat: chatId,
+                    type: extraType,
+                    replica: extraReplica
+                });
+                await ctx.reply(`Saved ${extraType} as response to ${hashtag}`);
             } catch (e) {
                 report(`Failed to add extra. ${e}`, 'extra');
             }
