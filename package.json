@@ -12,8 +12,8 @@
   "dependencies": {
     "dotenv": "^8.0.0",
     "mongoose": "^5.6.9",
-    "telegraf": "^3.32.0",
-    "node-fetch": "latest"
+    "node-fetch": "latest",
+    "telegraf": "^3.36.0"
   },
   "devDependencies": {
     "typescript": "^3.5.3",
