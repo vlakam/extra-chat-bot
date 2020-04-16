@@ -48,7 +48,7 @@ const handleNewExtras = async (extra: INewExtra, ctx: ContextMessageUpdate) => {
     const method = replicators.copyMethods[extra.type];
 
     // @ts-ignore
-    const newMessage = await ctx.telegram.callApi(method, {chat_id: id, ...extra.replica});
+    const newMessage = await ctx.telegram.callApi(method, {chat_id: id, ...extra.replica, reply_to_message_id: messageToReply});
 
     return newMessage;
 }
