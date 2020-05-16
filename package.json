@@ -11,7 +11,7 @@
   "license": "MIT",
   "dependencies": {
     "dotenv": "^8.0.0",
-    "mongoose": "^5.6.9",
+    "mongoose": "^5.7.5",
     "node-fetch": "latest",
     "telegraf": "^3.38.0"
   },
