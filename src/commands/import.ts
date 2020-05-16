@@ -1,8 +1,8 @@
-import Telegraf, {ContextMessageUpdate} from "telegraf";
+import Telegraf, {Context} from "telegraf";
 import adminMiddleware from "../middlewares/adminMiddleware";
 
-export default (bot: Telegraf<ContextMessageUpdate>) => {
-    bot.command('import', adminMiddleware, async (ctx: ContextMessageUpdate) => {
+export default (bot: Telegraf<Context>) => {
+    bot.command('import', adminMiddleware, async (ctx: Context) => {
         ctx.reply(`Not implemented. Please donate a шаверма`);
     });
 }

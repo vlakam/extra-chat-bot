@@ -1,9 +1,9 @@
-import Telegraf, {ContextMessageUpdate} from "telegraf";
+import Telegraf, {Context} from "telegraf";
 import {ExtraModel} from "../models";
 import report from "../helpers/report";
 
-const setupTTLCommand = (bot: Telegraf<ContextMessageUpdate>) => {
-    bot.hears(/[!\/]ttl (#.+) ([1-9][0-9]{0,10})/, async (ctx: ContextMessageUpdate) => {
+const setupTTLCommand = (bot: Telegraf<Context>) => {
+    bot.hears(/[!\/]ttl (#.+) ([1-9][0-9]{0,10})/, async (ctx: Context) => {
         const { id:chatId } = ctx.chat;
         let [ _, hashtag, time ] = ctx.match;
 

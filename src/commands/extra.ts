@@ -1,12 +1,12 @@
-import Telegraf, {ContextMessageUpdate} from "telegraf";
+import Telegraf, {Context} from "telegraf";
 import adminMiddleware from "../middlewares/adminMiddleware";
 import report from "../helpers/report";
 import * as tt from 'telegram-typings';
 import {ExtraModel, NewExtraModel} from "../models";
 import replicators from 'telegraf/core/replicators';
 
-const setupExtraCommand = (bot: Telegraf<ContextMessageUpdate>) => {
-    bot.hears(/^[!\/]extra (.+)$/, adminMiddleware, async (ctx: ContextMessageUpdate) => {
+const setupExtraCommand = (bot: Telegraf<Context>) => {
+    bot.hears(/^[!\/]extra (.+)$/, adminMiddleware, async (ctx: Context) => {
         const op = ctx.match[1];
         const { id:chatId } = ctx.chat;
 

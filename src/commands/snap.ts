@@ -1,12 +1,12 @@
-import Telegraf, {ContextMessageUpdate} from "telegraf";
+import Telegraf, {Context} from "telegraf";
 import { ExtraModel, OldExtraModel, NewExtraModel } from "../models";
 import adminMiddleware from "../middlewares/adminMiddleware";
 import report from "../helpers/report";
 
 const snapCooldown = {};
 
-const setupSnapCommand = (bot: Telegraf<ContextMessageUpdate>) => {
-    bot.hears(/^[!\/]snap$/, adminMiddleware, async (ctx: ContextMessageUpdate) => {
+const setupSnapCommand = (bot: Telegraf<Context>) => {
+    bot.hears(/^[!\/]snap$/, adminMiddleware, async (ctx: Context) => {
         const { id:chatId } = ctx.chat;
         const { id:userId } = ctx.message.from;
         const oldSnap = snapCooldown[chatId] || new Date(0);

@@ -1,4 +1,4 @@
-import Telegraf, {ContextMessageUpdate} from "telegraf";
+import Telegraf, {Context} from "telegraf";
 import {ExtraModel, INewExtra, IOldExtra, OldExtraModel, NewExtraModel} from "../models";
 import replicators from 'telegraf/core/replicators';
 import report from "../helpers/report";
@@ -6,7 +6,7 @@ import report from "../helpers/report";
 const IS_FILE_REGEXP = /^###.+###:(.*)/;
 const SPECIAL_FILE = /^###file_id!(.*)###/;
 
-const handleOldExtras = async (extra: IOldExtra, ctx: ContextMessageUpdate) => {
+const handleOldExtras = async (extra: IOldExtra, ctx: Context) => {
     const {id} = ctx.message.chat;
     const fileId = extra.code.match(IS_FILE_REGEXP);
     const specialMethod = extra.code.match(SPECIAL_FILE);
@@ -38,7 +38,7 @@ const handleOldExtras = async (extra: IOldExtra, ctx: ContextMessageUpdate) => {
     return newMessage;
 };
 
-const handleNewExtras = async (extra: INewExtra, ctx: ContextMessageUpdate) => {
+const handleNewExtras = async (extra: INewExtra, ctx: Context) => {
     const {id} = ctx.message.chat;
     let messageToReply = ctx.message.message_id;
     if (ctx.message.reply_to_message && ctx.message.reply_to_message.message_id) {
@@ -53,8 +53,8 @@ const handleNewExtras = async (extra: INewExtra, ctx: ContextMessageUpdate) => {
     return newMessage;
 }
 
-const setupExtraTrigger = (bot: Telegraf<ContextMessageUpdate>) => {
-    bot.hears(/^#([^\s]+)$/, async (ctx: ContextMessageUpdate) => {
+const setupExtraTrigger = (bot: Telegraf<Context>) => {
+    bot.hears(/^#([^\s]+)$/, async (ctx: Context) => {
         let [hashtag] = ctx.match;
         const {id} = ctx.message.chat;
         const {message_id: messageId} = ctx.message;

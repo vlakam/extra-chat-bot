@@ -1,6 +1,6 @@
-import {ContextMessageUpdate} from "telegraf";
+import {Context} from "telegraf";
 
-export default async (ctx: ContextMessageUpdate, next: Function) => {
+export default async (ctx: Context, next: Function) => {
     const start = new Date();
     await next();
     const ms = (new Date()).getTime() - start.getTime();
