@@ -31,22 +31,19 @@ const BaseExtraSchema: Schema = new Schema({
     discriminatorKey: 'kind',
 });
 
-BaseExtraSchema.methods.dump = (): string => { return ''; };
-BaseExtraSchema.methods.toList = (): string => { return ''; };
-
 const OldExtraSchema: Schema = new Schema({
     code: { type: String, required: true }
 }, {
     discriminatorKey: 'kind'
 });
 
-OldExtraSchema.methods.dump = function (): string {
+BaseExtraSchema.methods.dump = OldExtraSchema.methods.dump = function (): string {
     return JSON.stringify({
         kind: 'Old',
         code: this.code,
     }, null, 2);
 };
-OldExtraSchema.methods.toList = function (): string { return this.hashtag; };
+BaseExtraSchema.methods.toList = OldExtraSchema.methods.toList = function (): string { return this.hashtag; };
 
 const NewExtraSchema: Schema = new Schema({
     replica: { type: Object, required: true },
@@ -66,7 +63,7 @@ NewExtraSchema.methods.dump = function (): string {
         private: this.private
     }, null, 2);
 };
-NewExtraSchema.methods.toList = function (): string { return `${this.hashtag} ${this.description ? `- ${this.description}` : ''}`;; };
+NewExtraSchema.methods.toList = function (): string { return `${this.hashtag}${this.description ? ` - ${this.description}` : ''}`; };
 
 BaseExtraSchema.index({ chat: 1, hashtag: 1 }, { unique: true });
 export const ExtraModel = mongoose.model<IExtra>('Extra', BaseExtraSchema);
