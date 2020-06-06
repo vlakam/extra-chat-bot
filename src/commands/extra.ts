@@ -70,7 +70,7 @@ const setupExtraCommand = (bot: Telegraf<Context>) => {
                     description,
                     private: false,
                 });
-                await ctx.reply(`Saved ${extraType} as response to ${hashtag}`);
+                await ctx.reply(`Saved ${extraType} as response to ${hashtag}. Description: ${ description || '' }`);
             } catch (e) {
                 report(`Failed to add extra. ${e}`, 'extra');
             }
