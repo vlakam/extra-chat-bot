@@ -1,22 +1,22 @@
-import Telegraf, {Context} from "telegraf";
+import Telegraf, { Context } from "telegraf";
 import adminMiddleware from "../middlewares/adminMiddleware";
 import report from "../helpers/report";
 import * as tt from 'telegram-typings';
-import {ExtraModel, NewExtraModel} from "../models";
+import { ExtraModel, NewExtraModel, IExtra } from "../models";
 import replicators from 'telegraf/core/replicators';
 
 const setupExtraCommand = (bot: Telegraf<Context>) => {
     bot.hears(/^[!\/]extra (.+)$/, adminMiddleware, async (ctx: Context) => {
         const op = ctx.match[1];
-        const { id:chatId } = ctx.chat;
+        const { id: chatId } = ctx.chat;
 
         if (op === 'list') {
             try {
-                let extras = await ExtraModel.find({
+                let extras: Array<IExtra> = await ExtraModel.find({
                     chat: chatId
                 });
 
-                return await ctx.reply(`List of custom commands:\n${extras.map((extra) => extra.hashtag).join('\n')}`);
+                return await ctx.reply(`List of custom commands:\n${extras.map((extra) => extra.toList()).join('\n')}`);
             } catch (e) {
                 report(`Failed to show list of extras. ${e}`, 'extra');
             }
@@ -37,8 +37,8 @@ const setupExtraCommand = (bot: Telegraf<Context>) => {
                 report(`Failed to delete extra. ${e}`, 'extra');
             }
         } else if (op.startsWith('#')) {
-            const input = op.match(/(#[\w]+)/);
-            const saveMessage:tt.Message = ctx.message.reply_to_message;
+            const input = op.match(/(#[\w]+)(\s.+)?/);
+            const saveMessage: tt.Message = ctx.message.reply_to_message;
             if (!saveMessage) {
                 return ctx.reply('Reply to message');
             }
@@ -48,6 +48,7 @@ const setupExtraCommand = (bot: Telegraf<Context>) => {
             }
 
             let hashtag = input[1].toLowerCase();
+            let description = input[2] ? input[2].trim() : null;
 
             try {
                 const oldExtra = await ExtraModel.findOne({
@@ -65,7 +66,9 @@ const setupExtraCommand = (bot: Telegraf<Context>) => {
                     hashtag,
                     chat: chatId,
                     type: extraType,
-                    replica: extraReplica
+                    replica: extraReplica,
+                    description,
+                    private: false,
                 });
                 await ctx.reply(`Saved ${extraType} as response to ${hashtag}`);
             } catch (e) {
