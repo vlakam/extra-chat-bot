@@ -41,7 +41,7 @@ BaseExtraSchema.methods.dump = OldExtraSchema.methods.dump = function (): string
     return JSON.stringify({
         kind: 'Old',
         code: this.code,
-    }, null, 2);
+    });
 };
 BaseExtraSchema.methods.toList = OldExtraSchema.methods.toList = function (): string { return this.hashtag; };
 
@@ -61,7 +61,7 @@ NewExtraSchema.methods.dump = function (): string {
         replica: this.replica,
         description: this.description,
         private: this.private
-    }, null, 2);
+    });
 };
 NewExtraSchema.methods.toList = function (): string { return `${this.hashtag}${this.description ? ` - ${this.description}` : ''}`; };
 
@@ -69,3 +69,7 @@ BaseExtraSchema.index({ chat: 1, hashtag: 1 }, { unique: true });
 export const ExtraModel = mongoose.model<IExtra>('Extra', BaseExtraSchema);
 export const OldExtraModel = ExtraModel.discriminator<IOldExtra>("OldExtra", OldExtraSchema, "Old");
 export const NewExtraModel = ExtraModel.discriminator<INewExtra>("NewExtra", NewExtraSchema, "New");
+
+export const migrations = async () => {
+    await ExtraModel.updateMany({ kind: { $exists: false }}, { kind: 'Old' });
+};
