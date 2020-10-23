@@ -16,11 +16,6 @@ export const migrateOldExtras = async () => {
         }
     }).telegram;
 
-    // try {
-    //     await telegram.sendMessage(MASTER_ID, chunk);
-    // } catch (err) {
-    //     console.error(err, chunk);
-    // }
     const oldExtras = await OldExtraModel.find({});
     for (const extra of oldExtras) {
         console.log(`Migrating ${extra.hashtag} of chat ${extra.chat}`);
@@ -49,6 +44,7 @@ export const migrateOldExtras = async () => {
 
             await createExtra(extra.hashtag, null, parseInt(extra.chat), newMessage);
             console.log(`Migrated ${extra.hashtag} of chat ${extra.chat}`);
+            await telegram.deleteMessage(MASTER_ID, newMessage.message_id);
         } catch (e) {
             console.error(`Cannot migrate ${extra.hashtag} of chat ${extra.chat}. Error: ${e.toString()}`);
         }
