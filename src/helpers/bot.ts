@@ -1,4 +1,5 @@
 import Telegraf from 'telegraf';
+import { migrateOldExtras } from './migrateOldExtras';
 import report from "./report";
 
 const bot = new Telegraf('', {
@@ -12,6 +13,7 @@ export const launch = async (token: string) => {
     bot.token = token;
 
     try {
+        await migrateOldExtras();
         await bot.launch();
         report(`Bot started`);
     } catch (e) {
