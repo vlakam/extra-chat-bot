@@ -3,40 +3,7 @@ import {ExtraModel, INewExtra, IOldExtra, OldExtraModel, NewExtraModel} from "..
 import replicators from 'telegraf/core/replicators';
 import report from "../helpers/report";
 
-const IS_FILE_REGEXP = /^###.+###:(.*)/;
-const SPECIAL_FILE = /^###file_id!(.*)###/;
 
-const handleOldExtras = async (extra: IOldExtra, ctx: Context) => {
-    const {id} = ctx.message.chat;
-    const fileId = extra.code.match(IS_FILE_REGEXP);
-    const specialMethod = extra.code.match(SPECIAL_FILE);
-    let messageToReply = ctx.message.message_id;
-    if (ctx.message.reply_to_message && ctx.message.reply_to_message.message_id) {
-        messageToReply = ctx.message.reply_to_message.message_id;
-    }
-
-    let newMessage;
-    if (fileId) {
-        if (specialMethod) {
-            const method = specialMethod[1];
-            if (method === 'photo')
-                newMessage = await ctx.telegram.sendPhoto(id, fileId[1], {reply_to_message_id: messageToReply});
-            else if (method === 'video')
-                newMessage = await ctx.telegram.sendVideo(id, fileId[1], {reply_to_message_id: messageToReply});
-            else if (method === 'voice')
-                newMessage = await ctx.telegram.sendVoice(id, fileId[1], {reply_to_message_id: messageToReply});
-        } else {
-            newMessage = await ctx.telegram.sendDocument(id, fileId[1], {reply_to_message_id: messageToReply});
-        }
-    } else {
-        newMessage = await ctx.telegram.sendMessage(id, extra.code, {
-            reply_to_message_id: messageToReply,
-            parse_mode: "Markdown"
-        })
-    }
-
-    return newMessage;
-};
 
 const handleNewExtras = async (extra: INewExtra, ctx: Context) => {
     const {id} = ctx.message.chat;
@@ -69,7 +36,9 @@ const setupExtraTrigger = (bot: Telegraf<Context>) => {
             try {
                 let newMessage = null;
                 if (extra.kind === 'Old') {
-                    newMessage = handleOldExtras(new OldExtraModel(extra), ctx);
+                    // newMessage = handleOldExtras(new OldExtraModel(extra), ctx);
+                    report(`${hashtag} is an old format. Chat ${id}`);
+                    return ctx.reply('This extra requires migration');
                 } else {
                     newMessage = handleNewExtras(new NewExtraModel(extra), ctx);
                 }

@@ -5,6 +5,36 @@ import * as tt from 'telegram-typings';
 import { ExtraModel, NewExtraModel, IExtra } from "../models";
 import replicators from 'telegraf/core/replicators';
 
+export const createExtra = async (hashtag: string, description: string | null, chatId: number, saveMessage: tt.Message): Promise<string | null> => {
+    try {
+        const oldExtra = await ExtraModel.findOne({
+            hashtag,
+            chat: chatId
+        });
+
+        const extraType = Object.keys(replicators.copyMethods).find((type) => saveMessage[type]);
+        const extraReplica = replicators[extraType](saveMessage);
+        if (oldExtra) {
+            await ExtraModel.deleteOne({ hashtag, chat: chatId });
+        }
+
+        await NewExtraModel.create({
+            hashtag,
+            chat: chatId,
+            type: extraType,
+            replica: extraReplica,
+            description,
+            private: false,
+        });
+
+        return extraType;
+    } catch (e) {
+        report(`Failed to add extra. ${e}`, 'extra');
+    }
+
+    return null;
+}
+
 const setupExtraCommand = (bot: Telegraf<Context>) => {
     bot.hears(/^[!\/]extra (.+)$/, adminMiddleware, async (ctx: Context) => {
         const op = ctx.match[1];
@@ -49,31 +79,13 @@ const setupExtraCommand = (bot: Telegraf<Context>) => {
 
             let hashtag = input[1].toLowerCase();
             let description = input[2] ? input[2].trim() : null;
+            const extraType = createExtra(hashtag, description, chatId, saveMessage);
 
-            try {
-                const oldExtra = await ExtraModel.findOne({
-                    hashtag,
-                    chat: chatId
-                });
-
-                const extraType = Object.keys(replicators.copyMethods).find((type) => saveMessage[type]);
-                const extraReplica = replicators[extraType](saveMessage);
-                if (oldExtra) {
-                    await ExtraModel.deleteOne({ hashtag, chat: chatId });
-                }
-
-                await NewExtraModel.create({
-                    hashtag,
-                    chat: chatId,
-                    type: extraType,
-                    replica: extraReplica,
-                    description,
-                    private: false,
-                });
-                await ctx.reply(`Saved ${extraType} as response to ${hashtag}. Description: ${ description || '' }`);
-            } catch (e) {
-                report(`Failed to add extra. ${e}`, 'extra');
+            if (!extraType) {
+                return ctx.reply('No wai');
             }
+
+            await ctx.reply(`Saved ${extraType} as response to ${hashtag}. Description: ${ description || '' }`);
         }
     });
 };
