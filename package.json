@@ -10,6 +10,7 @@
   "author": "vlakam",
   "license": "MIT",
   "dependencies": {
+    "difflib": "latest",
     "dotenv": "^8.0.0",
     "mongoose": "^5.6.9",
     "node-fetch": "latest",

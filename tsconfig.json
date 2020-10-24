@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "allowJs": true, // difflib
     "module": "commonjs",
     "esModuleInterop": true,
     "target": "es2017",
