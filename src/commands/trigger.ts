@@ -1,5 +1,6 @@
 import Telegraf, {Context} from "telegraf";
 import Markup from "telegraf/markup";
+// import { InlineKeyboardMarkup } from "telegram-typings";
 import {ExtraModel, INewExtra, IOldExtra, OldExtraModel, NewExtraModel} from "../models";
 import replicators from 'telegraf/core/replicators';
 import report from "../helpers/report";
@@ -100,12 +101,25 @@ const setupExtraTrigger = (bot: Telegraf<Context>) => {
 
     bot.action(/^suggestion:#?([^\s]+)$/, async (ctx: Context) => {
         let hashtag = `#${ctx.match[1]}`;
-        const {id} = ctx.callbackQuery.message.chat;
+        // const {id} = ctx.callbackQuery.message.chat;
 
         console.log(`suggestion ${hashtag}`);
 
         // Here we must reuse function from above. Need a small refactor.
 
+
+        // Extracting message keyboard. Maybe it's better to contribute to telegram-typings module..
+
+        // Uncomment this line and import
+        // const markup: InlineKeyboardMarkup | undefined = (ctx.callbackQuery.message as any).reply_markup;
+
+        // To prevent flood/spam
+        // 1. Send extra
+        // 2. Iterate over markup.inline_keyboard with variable above
+        // 3. Remove sent extra button and editReplyMarkup to current ctx.message
+        // 4. ???
+        // 5. Best UX for extra-bot ever. Profit!
+        
         await ctx.answerCbQuery();
     });
 };
