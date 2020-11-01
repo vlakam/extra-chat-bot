@@ -1,5 +1,5 @@
 import Telegraf, {Context} from "telegraf";
-import { ExtraModel, OldExtraModel, NewExtraModel, IExtra } from "../models";
+import { ExtraModel, IExtra } from "../models";
 import adminMiddleware from "../middlewares/adminMiddleware";
 import report from "../helpers/report";
 import { BotCommand } from "telegraf/typings/telegram-types";

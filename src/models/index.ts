@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 import report from "../helpers/report";
-import { migrations } from './extra.model';
 
 const { MONGODB } = process.env;
 
@@ -35,8 +34,6 @@ const connect = async () => {
         useNewUrlParser: true,
         useCreateIndex: true,
     });
-
-    await migrations();
 };
 
 connect().catch((error) => {

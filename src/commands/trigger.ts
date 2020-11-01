@@ -1,11 +1,11 @@
 import Telegraf, {Context} from "telegraf";
-import {ExtraModel, INewExtra, IOldExtra, OldExtraModel, NewExtraModel} from "../models";
+import {ExtraModel, INewExtra, NewExtraModel} from "../models";
 import replicators from 'telegraf/core/replicators';
 import report from "../helpers/report";
 
 
 
-const handleNewExtras = async (extra: INewExtra, ctx: Context) => {
+const handleNewExtras = async (ctx: Context, extra: INewExtra) => {
     const {id} = ctx.message.chat;
     let messageToReply = ctx.message.message_id;
     if (ctx.message.reply_to_message && ctx.message.reply_to_message.message_id) {
@@ -36,11 +36,10 @@ const setupExtraTrigger = (bot: Telegraf<Context>) => {
             try {
                 let newMessage = null;
                 if (extra.kind === 'Old') {
-                    // newMessage = handleOldExtras(new OldExtraModel(extra), ctx);
                     report(`${hashtag} is an old format. Chat ${id}`);
                     return ctx.reply('This extra requires migration');
                 } else {
-                    newMessage = handleNewExtras(new NewExtraModel(extra), ctx);
+                    newMessage = handleNewExtras(ctx, new NewExtraModel(extra));
                 }
 
                 if (extra.ttl !== -1) {

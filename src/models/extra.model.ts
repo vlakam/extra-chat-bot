@@ -69,7 +69,3 @@ BaseExtraSchema.index({ chat: 1, hashtag: 1 }, { unique: true });
 export const ExtraModel = mongoose.model<IExtra>('Extra', BaseExtraSchema);
 export const OldExtraModel = ExtraModel.discriminator<IOldExtra>("OldExtra", OldExtraSchema, "Old");
 export const NewExtraModel = ExtraModel.discriminator<INewExtra>("NewExtra", NewExtraSchema, "New");
-
-export const migrations = async () => {
-    await ExtraModel.updateMany({ kind: { $exists: false }}, { kind: 'Old' });
-};

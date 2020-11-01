@@ -2,7 +2,7 @@ import Telegraf, { Context } from 'telegraf';
 import adminMiddleware from '../middlewares/adminMiddleware';
 import { BotCommand } from 'telegraf/typings/telegram-types';
 import fetch from 'node-fetch';
-import { OldExtraModel, NewExtraModel, ExtraModel } from '../models';
+import { NewExtraModel, ExtraModel } from '../models';
 
 const { MASTER_ID } = process.env;
 
@@ -35,13 +35,7 @@ export default (bot: Telegraf<Context>, commands: Array<BotCommand>) => {
                     }
 
                     const parsedData = JSON.parse(data);
-                    if (parsedData.kind === 'Old') {
-                        await new OldExtraModel({
-                            chat: chatId,
-                            hashtag,
-                            code: parsedData.code,
-                        }).save();
-                    } else {
+                    if (parsedData.kind === 'New') {
                         await new NewExtraModel({
                             chat: chatId,
                             hashtag,

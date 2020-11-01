@@ -1,6 +1,6 @@
 import { createExtra } from "../commands/extra";
 import { Telegraf } from "telegraf";
-import { IOldExtra, OldExtraModel } from "../models"
+import mongoose from "mongoose";
 
 const {BOT_TOKEN, MASTER_ID, TELEGRAM_API} = process.env;
 
@@ -15,9 +15,12 @@ export const migrateOldExtras = async () => {
             apiRoot: TELEGRAM_API || 'https://api.telegram.org'
         }
     }).telegram;
+    const connection = mongoose.connection;
+    if (connection.readyState !== 1) return;
+    //untested shit
+    const extraCollection = connection.collection('extra');
 
-    const oldExtras = await OldExtraModel.find({});
-    for (const extra of oldExtras) {
+    for await (const extra of extraCollection.find({kind: 'Old'})) {
         console.log(`Migrating ${extra.hashtag} of chat ${extra.chat}`);
         try {
             const fileId = extra.code.match(IS_FILE_REGEXP);
