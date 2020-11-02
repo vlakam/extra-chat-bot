@@ -1,17 +1,24 @@
-import Telegraf, {Context} from "telegraf";
-import {ExtraModel} from "../models";
-import report from "../helpers/report";
+import Telegraf, { Context } from 'telegraf';
+import { ExtraModel } from '../models';
+import report from '../helpers/report';
 
 const setupExtraTrigger = (bot: Telegraf<Context>) => {
     bot.hears(/^#([^\s]+)$/, async (ctx: Context) => {
         let [hashtag] = ctx.match;
-        const {id} = ctx.message.chat;
-        const {message_id: messageId} = ctx.message;
+        const { id } = ctx.message.chat;
+        const { message_id: messageId } = ctx.message;
 
         hashtag = hashtag.toLowerCase();
         const extra = await ExtraModel.findOne({
             chat: id,
-            hashtag: hashtag
+            $or: [
+                {
+                    hashtag: hashtag,
+                },
+                {
+                    alias: hashtag,
+                },
+            ],
         });
 
         if (extra) {
@@ -28,7 +35,10 @@ const setupExtraTrigger = (bot: Telegraf<Context>) => {
                             await ctx.telegram.deleteMessage(id, newMessage.message_id);
                             await ctx.telegram.deleteMessage(id, messageId);
                         } catch (e) {
-                            report(`Can't delete message from ${hashtag} ${newMessage.message_id} ${messageId}`, 'trigger');
+                            report(
+                                `Can't delete message from ${hashtag} ${newMessage.message_id} ${messageId}`,
+                                'trigger',
+                            );
                         }
                         console.log(`TTL: ${hashtag} ${id}`);
                     }, extra.ttl * 1000);
