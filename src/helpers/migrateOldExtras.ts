@@ -1,6 +1,6 @@
-import { createExtra } from "../commands/extra";
 import { Telegraf } from "telegraf";
 import mongoose from "mongoose";
+import { ExtraModel } from "../models";
 
 const {BOT_TOKEN, MASTER_ID, TELEGRAM_API} = process.env;
 
@@ -45,7 +45,7 @@ export const migrateOldExtras = async () => {
                 })
             }
 
-            await createExtra(extra.hashtag, null, parseInt(extra.chat), newMessage);
+            await ExtraModel.create(extra.hashtag, null, parseInt(extra.chat), newMessage);
             console.log(`Migrated ${extra.hashtag} of chat ${extra.chat}`);
             await telegram.deleteMessage(MASTER_ID, newMessage.message_id);
         } catch (e) {

@@ -1,24 +1,6 @@
 import Telegraf, {Context} from "telegraf";
-import {ExtraModel, INewExtra, NewExtraModel} from "../models";
-import replicators from 'telegraf/core/replicators';
+import {ExtraModel} from "../models";
 import report from "../helpers/report";
-
-
-
-const handleNewExtras = async (ctx: Context, extra: INewExtra) => {
-    const {id} = ctx.message.chat;
-    let messageToReply = ctx.message.message_id;
-    if (ctx.message.reply_to_message && ctx.message.reply_to_message.message_id) {
-        messageToReply = ctx.message.reply_to_message.message_id;
-    }
-
-    const method = replicators.copyMethods[extra.type];
-
-    // @ts-ignore
-    const newMessage = await ctx.telegram.callApi(method, {chat_id: id, ...extra.replica, reply_to_message_id: messageToReply});
-
-    return newMessage;
-}
 
 const setupExtraTrigger = (bot: Telegraf<Context>) => {
     bot.hears(/^#([^\s]+)$/, async (ctx: Context) => {
@@ -34,14 +16,12 @@ const setupExtraTrigger = (bot: Telegraf<Context>) => {
 
         if (extra) {
             try {
-                let newMessage = null;
                 if (extra.kind === 'Old') {
                     report(`${hashtag} is an old format. Chat ${id}`);
                     return ctx.reply('This extra requires migration');
-                } else {
-                    newMessage = handleNewExtras(ctx, new NewExtraModel(extra));
                 }
 
+                let newMessage = await extra.sendToChat(ctx);
                 if (extra.ttl !== -1) {
                     setTimeout(async () => {
                         try {
