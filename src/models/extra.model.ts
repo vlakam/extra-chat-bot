@@ -14,27 +14,24 @@ export interface IExtra extends Document {
     type: string;
     description?: string;
     private: boolean;
+    aliases: Array<string>;
 
     dump: () => string;
     toList: () => string;
     sendToChat: (ctx: Context, chatId?: number) => Promise<TT.Message>;
 }
 
-const ExtraSchema: Schema = new Schema(
-    {
-        hashtag: { type: String, required: true },
-        chat: { type: String, required: true },
-        ttl: { type: Number, required: false, default: -1 },
-        kind: { type: String, required: true, enum: ['Old', 'New'], default: 'New' },
-        replica: { type: Object, required: true },
-        type: { type: String, required: true },
-        description: { type: String, required: false },
-        private: { type: Boolean, required: true, default: false },
-    },
-    {
-        discriminatorKey: 'kind',
-    },
-);
+const ExtraSchema: Schema = new Schema({
+    hashtag: { type: String, required: true },
+    chat: { type: String, required: true },
+    ttl: { type: Number, required: false, default: -1 },
+    kind: { type: String, required: true, enum: ['Old', 'New'], default: 'New' },
+    replica: { type: Object, required: true },
+    type: { type: String, required: true },
+    description: { type: String, required: false },
+    private: { type: Boolean, required: true, default: false },
+    aliases: [{ type: String, required: false }],
+});
 
 ExtraSchema.methods.dump = function (): string {
     return JSON.stringify({
