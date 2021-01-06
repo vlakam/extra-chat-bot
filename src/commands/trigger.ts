@@ -5,20 +5,13 @@ import report from '../helpers/report';
 const setupExtraTrigger = (bot: Telegraf<Context>) => {
     bot.hears(/^#([^\s]+)$/, async (ctx: Context) => {
         let [hashtag] = ctx.match;
-        const { id } = ctx.message.chat;
+        const { id, type: chatType } = ctx.message.chat;
         const { message_id: messageId } = ctx.message;
 
         hashtag = hashtag.toLowerCase();
         const extra = await ExtraModel.findOne({
             chat: id,
-            $or: [
-                {
-                    hashtag: hashtag,
-                },
-                {
-                    alias: hashtag,
-                },
-            ],
+            hashtag: hashtag,
         });
 
         if (extra) {
@@ -28,7 +21,10 @@ const setupExtraTrigger = (bot: Telegraf<Context>) => {
                     return ctx.reply('This extra requires migration');
                 }
 
-                let newMessage = await extra.sendToChat(ctx);
+                let newMessage;
+                if (extra.private && chatType !== 'private') newMessage = await extra.sendButton(ctx);
+                else newMessage = await extra.sendToChat(ctx);
+
                 if (extra.ttl !== -1) {
                     setTimeout(async () => {
                         try {
@@ -48,6 +44,8 @@ const setupExtraTrigger = (bot: Telegraf<Context>) => {
             }
         }
     });
+
+    
 };
 
 export default setupExtraTrigger;

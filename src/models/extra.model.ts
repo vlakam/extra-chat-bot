@@ -1,4 +1,4 @@
-import { Context } from 'telegraf';
+import { Context, Extra } from 'telegraf';
 import replicators from 'telegraf/core/replicators';
 import * as TT from 'telegram-typings';
 import mongoose, { Schema, Document } from 'mongoose';
@@ -18,7 +18,8 @@ export interface IExtra extends Document {
 
     dump: () => string;
     toList: () => string;
-    sendToChat: (ctx: Context, chatId?: number) => Promise<TT.Message>;
+    sendToChat: (ctx: Context, chatId?: number, isPrivate?: boolean) => Promise<TT.Message>;
+    sendButton: (ctx: Context) => Promise<TT.Message>;
 }
 
 const ExtraSchema: Schema = new Schema({
@@ -30,7 +31,6 @@ const ExtraSchema: Schema = new Schema({
     type: { type: String, required: true },
     description: { type: String, required: false },
     private: { type: Boolean, required: true, default: false },
-    aliases: [{ type: String, required: false }],
 });
 
 ExtraSchema.methods.dump = function (): string {
@@ -47,7 +47,11 @@ ExtraSchema.methods.toList = function (): string {
     return `${this.hashtag}${this.description ? ` - ${this.description}` : ''}`;
 };
 
-ExtraSchema.methods.sendToChat = async function (ctx: Context, chatId?: number): Promise<TT.Message> {
+ExtraSchema.methods.sendToChat = async function (
+    ctx: Context,
+    chatId?: number,
+    isPrivate = false,
+): Promise<TT.Message> {
     let id = chatId || ctx.message.chat.id;
     let messageToReply = ctx.message.message_id;
     if (ctx.message.reply_to_message && ctx.message.reply_to_message.message_id) {
@@ -55,14 +59,22 @@ ExtraSchema.methods.sendToChat = async function (ctx: Context, chatId?: number):
     }
 
     const method = replicators.copyMethods[this.type];
-
     const newMessage = ((await ctx.telegram.callApi(method, {
         chat_id: id,
         ...this.replica,
-        reply_to_message_id: messageToReply,
+        reply_to_message_id: !isPrivate ? messageToReply : null,
     })) as unknown) as TT.Message;
 
     return newMessage;
+};
+
+ExtraSchema.methods.sendButton = async function (ctx: Context): Promise<TT.Message> {
+    return ctx.reply(
+        'Я попробовал отправить экстру в личку. Если она не пришла или нужна копия - нажмите кнопку.',
+        Extra.markup((m) => m.inlineKeyboard([[
+            m.callbackButton(`Пришли копию ${this.hashtag}`, `private ${this._id}`)
+        ]])),
+    );
 };
 
 ExtraSchema.statics.create = async function (
