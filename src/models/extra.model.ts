@@ -7,8 +7,6 @@ import report from '../helpers/report';
 export interface IExtra extends Document {
     hashtag: string;
     chat: string;
-    ttl: number;
-    kind: string;
 
     replica: object;
     type: string;
@@ -25,8 +23,6 @@ export interface IExtra extends Document {
 const ExtraSchema: Schema = new Schema({
     hashtag: { type: String, required: true },
     chat: { type: String, required: true },
-    ttl: { type: Number, required: false, default: -1 },
-    kind: { type: String, required: true, enum: ['Old', 'New'], default: 'New' },
     replica: { type: Object, required: true },
     type: { type: String, required: true },
     description: { type: String, required: false },
@@ -35,7 +31,6 @@ const ExtraSchema: Schema = new Schema({
 
 ExtraSchema.methods.dump = function (): string {
     return JSON.stringify({
-        kind: 'New',
         type: this.type,
         replica: this.replica,
         description: this.description,
