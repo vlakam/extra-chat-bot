@@ -13,7 +13,7 @@
     "dotenv": "^8.0.0",
     "mongoose": "^5.7.5",
     "node-fetch": "latest",
-    "telegraf": "^3.38.0"
+    "telegraf": "3.38.0"
   },
   "devDependencies": {
     "typescript": "^3.5.3",

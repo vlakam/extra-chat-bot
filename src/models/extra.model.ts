@@ -16,6 +16,7 @@ export interface IExtra extends Document {
 
     dump: () => string;
     toList: () => string;
+    process: (ctx: Context) => Promise<TT.Message>;
     sendToChat: (ctx: Context, chatId?: number, isPrivate?: boolean) => Promise<TT.Message>;
     sendButton: (ctx: Context) => Promise<TT.Message>;
 }
@@ -66,10 +67,23 @@ ExtraSchema.methods.sendToChat = async function (
 ExtraSchema.methods.sendButton = async function (ctx: Context): Promise<TT.Message> {
     return ctx.reply(
         'Я попробовал отправить экстру в личку. Если она не пришла или нужна копия - нажмите кнопку.',
-        Extra.markup((m) => m.inlineKeyboard([[
-            m.callbackButton(`Пришли копию ${this.hashtag}`, `private ${this._id}`)
-        ]])),
+        Extra.markup((m) =>
+            m.inlineKeyboard([[m.callbackButton(`Пришли копию ${this.hashtag}`, `private ${this._id}`)]]),
+        ),
     );
+};
+
+ExtraSchema.methods.process = async function (ctx: Context): Promise<TT.Message> {
+    const chatType = ctx.chat ? ctx.chat.type : 'private';
+
+    let newMessage;
+    if (this.private && chatType !== 'private') {
+        //todo надо как-то понять кому в личку отправлять то экстру.
+        console.log(ctx.message.from);
+        newMessage = await this.sendButton(ctx);
+    } else newMessage = await this.sendToChat(ctx);
+
+    return newMessage;
 };
 
 ExtraSchema.statics.create = async function (

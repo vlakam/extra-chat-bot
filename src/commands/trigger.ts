@@ -7,7 +7,6 @@ const setupExtraTrigger = (bot: Telegraf<Context>) => {
     bot.hears(/^#([^\s]+)$/, async (ctx: Context) => {
         let [hashtag] = ctx.match;
         const { id, type: chatType } = ctx.message.chat;
-        const { message_id: messageId } = ctx.message;
 
         hashtag = hashtag.toLowerCase();
         const extra = await ExtraModel.findOne({
@@ -17,9 +16,7 @@ const setupExtraTrigger = (bot: Telegraf<Context>) => {
 
         if (extra) {
             try {
-                let newMessage;
-                if (extra.private && chatType !== 'private') newMessage = await extra.sendButton(ctx);
-                else newMessage = await extra.sendToChat(ctx);
+                await extra.process(ctx);
             } catch (e) {
                 report(`Failed to send extra on ${hashtag}. Err: ${e}`);
             }
@@ -47,25 +44,19 @@ const setupExtraTrigger = (bot: Telegraf<Context>) => {
 
     bot.action(/^suggestion:#?([^\s]+)$/, async (ctx: Context) => {
         let hashtag = `#${ctx.match[1]}`;
-        // const {id} = ctx.callbackQuery.message.chat;
-
         console.log(`suggestion ${hashtag}`);
+        
+        const { id, type: chatType } = ctx.callbackQuery.message.chat;
+        const extra = await ExtraModel.findOne({
+            chat: id,
+            hashtag: hashtag,
+        });
 
-        // Here we must reuse function from above. Need a small refactor.
-
-        // Extracting message keyboard. Maybe it's better to contribute to telegram-typings module..
-
-        // Uncomment this line and import
-        // const markup: InlineKeyboardMarkup | undefined = (ctx.callbackQuery.message as any).reply_markup;
-
-        // To prevent flood/spam
-        // 1. Send extra
-        // 2. Iterate over markup.inline_keyboard with variable above
-        // 3. Remove sent extra button and editReplyMarkup to current ctx.message
-        // 4. ???
-        // 5. Best UX for extra-bot ever. Profit!
-
+        if (!extra) return ctx.answerCbQuery('Ты че делаешь?');
+        await extra.process(ctx);
         await ctx.answerCbQuery();
+
+        return ctx.telegram.deleteMessage(id, ctx.callbackQuery.message.message_id);
     });
 };
 
