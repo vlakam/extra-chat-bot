@@ -49,7 +49,7 @@ const setupExtraCommand = (bot: Telegraf<Context>) => {
 
             let hashtag = input[1].toLowerCase();
             let description = input[2] ? input[2].trim() : null;
-            const extraType = await ExtraModel.create(hashtag, description, chatId, saveMessage);
+            const extraType = await ExtraModel.createExtra(hashtag, description, chatId, saveMessage);
 
             if (!extraType) {
                 return ctx.reply('No wai');

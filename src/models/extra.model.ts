@@ -1,7 +1,7 @@
 import { Context, Extra } from 'telegraf';
 import replicators from 'telegraf/core/replicators';
 import * as TT from 'telegram-typings';
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, Document, Model } from 'mongoose';
 import report from '../helpers/report';
 
 export interface IExtra extends Document {
@@ -20,6 +20,13 @@ export interface IExtra extends Document {
     toList: () => string;
     sendToChat: (ctx: Context, chatId?: number, isPrivate?: boolean) => Promise<TT.Message>;
     sendButton: (ctx: Context) => Promise<TT.Message>;
+}
+
+interface IExtraModel extends Model<IExtra> {
+    createExtra: (hashtag: string,
+        description: string | null,
+        chatId: number,
+        saveMessage: TT.Message) => Promise<any>;
 }
 
 const ExtraSchema: Schema = new Schema({
@@ -77,7 +84,7 @@ ExtraSchema.methods.sendButton = async function (ctx: Context): Promise<TT.Messa
     );
 };
 
-ExtraSchema.statics.create = async function (
+ExtraSchema.statics.createExtra = async function (
     hashtag: string,
     description: string | null,
     chatId: number,
@@ -95,7 +102,7 @@ ExtraSchema.statics.create = async function (
             await this.deleteOne({ hashtag, chat: chatId });
         }
 
-        await this.create({
+        await ExtraModel.create({
             hashtag,
             chat: chatId,
             type: extraType,
@@ -113,5 +120,5 @@ ExtraSchema.statics.create = async function (
 };
 
 ExtraSchema.index({ chat: 1, hashtag: 1 }, { unique: true });
-export const ExtraModel = mongoose.model<IExtra>('Extra', ExtraSchema);
+export const ExtraModel = mongoose.model<IExtra, IExtraModel>('Extra', ExtraSchema);
 export const NewExtraModel = ExtraModel;
