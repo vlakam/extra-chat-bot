@@ -8,7 +8,7 @@ const { MASTER_ID } = process.env;
 
 export default (bot: Telegraf<Context>, commands: Array<BotCommand>) => {
     bot.command('import', adminMiddleware, async (ctx: Context) => {
-        if (!ctx.message.reply_to_message.document) {
+        if (!ctx.message.reply_to_message || !ctx.message.reply_to_message.document) {
             return ctx.reply('Where is the backup?');
         }
 
@@ -20,6 +20,7 @@ export default (bot: Telegraf<Context>, commands: Array<BotCommand>) => {
             for (const chatId of Object.keys(contents)) {
                 if (parseInt(chatId) !== ctx.chat.id && ctx.chat.id !== parseInt(MASTER_ID)) {
                     await ctx.reply(`This backup of other chat`);
+                    continue;
                 }
                 const extras: Record<string, string> = contents[chatId];
 
@@ -42,6 +43,7 @@ export default (bot: Telegraf<Context>, commands: Array<BotCommand>) => {
                             type: parsedData.type,
                             replica: parsedData.replica,
                             description: parsedData.description || null,
+                            private: parsedData.private === true,
                         }).save();
                     }
                 }

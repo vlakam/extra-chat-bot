@@ -10,7 +10,7 @@ import forgetMiddleware from "./middlewares/forgetMiddleware";
 const { BOT_TOKEN } = process.env;
 
 bot.use(errorCatcherMiddleware);
-bot.use(timerMiddleware);
+// bot.use(timerMiddleware);
 bot.use(forgetMiddleware);
 
 setupCommands(bot);

@@ -7,6 +7,28 @@ import { BotCommand } from "telegraf/typings/telegram-types";
 const snapCooldown = {};
 
 const setupSnapCommand = (bot: Telegraf<Context>, commands: Array<BotCommand>) => {
+    bot.hears(/^[!\/]snapall$/, async (ctx: Context) => {
+        const masterId = Number(process.env.MASTER_ID);
+        if (!masterId || !ctx.from || ctx.from.id !== masterId) return;
+
+        try {
+            const extras: Array<IExtra> = await ExtraModel.find({});
+            const backup = Object.create(null);
+            for (const extra of extras) {
+                if (!backup[extra.chat]) backup[extra.chat] = Object.create(null);
+                backup[extra.chat][extra.hashtag] = extra.dump();
+            }
+
+            await ctx.telegram.sendDocument(masterId, {
+                source: Buffer.from(JSON.stringify(backup, null, 2)),
+                filename: 'extras-all.json',
+            }, { caption: `All chats - ${new Date().toISOString()}` });
+        } catch (e) {
+            report(`Failed to send all-chat snap. ${e}`, 'snap');
+            await ctx.reply('Could not send backup. Make sure you have started the bot in private.');
+        }
+    });
+
     bot.hears(/^[!\/]snap$/, adminMiddleware, async (ctx: Context) => {
         const { id:chatId } = ctx.chat;
         const { id:userId } = ctx.message.from;
