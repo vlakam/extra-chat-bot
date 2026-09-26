@@ -12,7 +12,7 @@
   "dependencies": {
     "dotenv": "^8.0.0",
     "mongoose": "^5.6.9",
-    "node-fetch": "latest",
+    "node-fetch": "2",
     "telegraf": "^3.38.0"
   },
   "devDependencies": {
