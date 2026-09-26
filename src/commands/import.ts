@@ -2,12 +2,14 @@ import Telegraf, { Context } from 'telegraf';
 import adminMiddleware from '../middlewares/adminMiddleware';
 import { BotCommand } from 'telegraf/typings/telegram-types';
 import fetch from 'node-fetch';
+import { markTrigger } from '../middlewares/timerMiddleware';
 import { NewExtraModel, ExtraModel } from '../models';
 
 const { MASTER_ID } = process.env;
 
 export default (bot: Telegraf<Context>, commands: Array<BotCommand>) => {
     bot.command('import', adminMiddleware, async (ctx: Context) => {
+        markTrigger(ctx, 'import');
         if (!ctx.message.reply_to_message || !ctx.message.reply_to_message.document) {
             return ctx.reply('Where is the backup?');
         }

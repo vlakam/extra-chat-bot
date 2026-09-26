@@ -1,6 +1,7 @@
 import Telegraf, { Context } from 'telegraf';
 import { ExtraModel } from '../models';
 import report from '../helpers/report';
+import { markTrigger } from '../middlewares/timerMiddleware';
 
 const setupExtraTrigger = (bot: Telegraf<Context>) => {
     bot.hears(/^#([^\s]+)$/, async (ctx: Context) => {
@@ -14,6 +15,7 @@ const setupExtraTrigger = (bot: Telegraf<Context>) => {
         });
 
         if (extra) {
+            markTrigger(ctx, `trigger ${hashtag}`);
             try {
                 if (extra.kind === 'Old') {
                     report(`${hashtag} is an old format. Chat ${id}`);

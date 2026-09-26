@@ -1,12 +1,14 @@
 import Telegraf, { Context } from "telegraf";
 import adminMiddleware from "../middlewares/adminMiddleware";
 import report from "../helpers/report";
+import { markTrigger } from '../middlewares/timerMiddleware';
 import * as tt from 'telegram-typings';
 import { ExtraModel, NewExtraModel, IExtra } from "../models";
 
 
 const setupExtraCommand = (bot: Telegraf<Context>) => {
     bot.hears(/^[!\/]extra (.+)$/, adminMiddleware, async (ctx: Context) => {
+        markTrigger(ctx, 'extra');
         const op = ctx.match[1];
         const { id: chatId } = ctx.chat;
 
@@ -61,4 +63,3 @@ const setupExtraCommand = (bot: Telegraf<Context>) => {
 };
 
 export default setupExtraCommand;
-

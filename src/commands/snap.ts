@@ -2,6 +2,7 @@ import Telegraf, {Context} from "telegraf";
 import { ExtraModel, IExtra } from "../models";
 import adminMiddleware from "../middlewares/adminMiddleware";
 import report from "../helpers/report";
+import { markTrigger } from '../middlewares/timerMiddleware';
 import { BotCommand } from "telegraf/typings/telegram-types";
 
 const snapCooldown = {};
@@ -10,6 +11,7 @@ const setupSnapCommand = (bot: Telegraf<Context>, commands: Array<BotCommand>) =
     bot.hears(/^[!\/]snapall$/, async (ctx: Context) => {
         const masterId = Number(process.env.MASTER_ID);
         if (!masterId || !ctx.from || ctx.from.id !== masterId) return;
+        markTrigger(ctx, 'snapall');
 
         try {
             const extras: Array<IExtra> = await ExtraModel.find({});
@@ -30,6 +32,7 @@ const setupSnapCommand = (bot: Telegraf<Context>, commands: Array<BotCommand>) =
     });
 
     bot.hears(/^[!\/]snap$/, adminMiddleware, async (ctx: Context) => {
+        markTrigger(ctx, 'snap');
         const { id:chatId } = ctx.chat;
         const { id:userId } = ctx.message.from;
         const oldSnap = snapCooldown[chatId] || new Date(0);

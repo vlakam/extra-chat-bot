@@ -5,6 +5,7 @@ import setupSnapCommand from "./snap";
 import setupExtraTrigger from "./trigger";
 import setupPrivateCommand from './private';
 import setupStartCommand from './start';
+import setupDebugCommand from './debug';
 import { BotCommand } from "telegraf/typings/telegram-types";
 
 const setupCommands = (bot: Telegraf<Context>): Array<BotCommand> => {
@@ -15,6 +16,7 @@ const setupCommands = (bot: Telegraf<Context>): Array<BotCommand> => {
     setupExtraTrigger(bot);
     setupPrivateCommand(bot, commands);
     setupStartCommand(bot, commands);
+    setupDebugCommand(bot);
 
     return commands;
 };
